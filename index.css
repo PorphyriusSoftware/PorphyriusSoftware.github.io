@@ -1,0 +1,32 @@
+body {
+    background-image: url(img/fotis-fotopoulos-SyvsTmuuZyM-unsplash.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    color: rgb(255, 255, 255);
+    text-shadow: 0 0 7px rgb(255, 255, 255), 0 0 10px rgb(255, 255, 255), 0 0 21px rgb(255, 255, 255),
+        0 0 42px rgb(82, 0, 82), 0 0 82px rgb(82, 0, 82), 0 0 92px rgb(82, 0, 82), 0 0 102px rgb(82, 0, 82),
+        0 0 151px rgb(82, 0, 82);
+}
+
+.overlay {
+    position: fixed; /* Sit on top of the page content */
+    display: block; /* Showing by default cuz it's part of the design*/
+    width: 100%; /* Full width (cover the whole page) */
+    height: 100%; /* Full height (cover the whole page) */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7); /* Black background with opacity */
+    z-index: 1; /* Specify a stack order in case you're using a different order for other elements */
+    cursor: pointer; /* Add a pointer on hover */
+}
+
+.content {
+    position: relative;
+    z-index: 2;
+    width: 80%;
+    margin: auto;
+    text-align: center;
+}
