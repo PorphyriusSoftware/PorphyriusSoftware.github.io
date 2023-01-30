@@ -1,33 +1,57 @@
 body {
-    color: rgb(255, 255, 255);
+    color: aliceblue;
     text-shadow: 0 0 7px rgb(255, 255, 255), 0 0 10px rgb(255, 255, 255), 0 0 21px rgb(255, 255, 255),
         0 0 42px rgb(82, 0, 82), 0 0 82px rgb(82, 0, 82), 0 0 92px rgb(82, 0, 82), 0 0 102px rgb(82, 0, 82),
         0 0 151px rgb(82, 0, 82);
 }
 
-.overlay {
-    position: fixed; /* Sit on top of the page content */
-    display: block; /* Showing by default cuz it's part of the design*/
-    width: 100%; /* Full width (cover the whole page) */
-    height: 100%; /* Full height (cover the whole page) */
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7); /* Black background with opacity */
-    z-index: 1; /* Specify a stack order in case you're using a different order for other elements */
-    
+#container {
+    height: 100vh;
+
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+        url(img/fotis-fotopoulos-SyvsTmuuZyM-unsplash.jpg);
+
+    background-repeat: no-repeat, no-repeat;
+    background-size: cover, cover;
 }
 
-#container {
-    background-image: url(img/fotis-fotopoulos-SyvsTmuuZyM-unsplash.jpg);
-    height: 100vh;
-    background-size: cover;
-    background-repeat: no-repeat;
+/* X-Large devices (large desktops, less than 1400px) */
+@media (max-width: 1399.98px) {
+    #container {
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+            url(img/altumcode-oZ61KFUQsus-unsplash.jpg);
+    }
+}
+
+/* Large devices (desktops, less than 1200px) */
+@media screen and (max-width: 1199.98px) {
+}
+
+/* Medium devices (tablets, less than 992px) */
+@media screen and (max-width: 991.98px) {
+    #container {
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+            url(img/altumcode-oZ61KFUQsus-unsplash.jpg);
+    }
+}
+
+/* Small devices (landscape phones, less than 768px) */
+@media screen and (max-width: 767.98px) {
+    #container {
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+            url(img/mohammad-rahmani-N5bT5RctFZ8-unsplash.jpg);
+    }
+}
+
+/* X-Small devices (portrait phones, less than 576px) */
+@media screen and (max-width: 575.98px) {
+    #container {
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+            url(img/mohammad-rahmani-N5bT5RctFZ8-unsplash.jpg);
+    }
 }
 
 .content {
     position: relative;
     z-index: 20;
-    color: aliceblue;
 }
