@@ -15,16 +15,43 @@ body {
     background-size: cover;
 }
 
+.content {
+    position: relative;
+    z-index: 20;
+    /* coordinate with footer */
+    margin-bottom: 120px;
+}
+
+.footer {
+    position: absolute;
+    width: 97%;
+    /* coordinate with content */
+    min-height: 120px;
+    bottom: 0;
+    margin: auto;
+}
+
 /* X-Large devices (large desktops, less than 1400px) */
 @media (max-width: 1399.98px) {
     #container {
         background-image: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
             url(img/altumcode-oZ61KFUQsus-unsplash.jpg);
     }
+    .footer > .row {
+        width: 90%;
+    }
 }
 
 /* Large devices (desktops, less than 1200px) */
 @media screen and (max-width: 1199.98px) {
+    #container {
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+            url(img/altumcode-oZ61KFUQsus-unsplash.jpg);
+    }
+
+    .footer > .row {
+        width: 90%;
+    }
 }
 
 /* Medium devices (tablets, less than 992px) */
@@ -32,6 +59,10 @@ body {
     #container {
         background-image: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
             url(img/altumcode-oZ61KFUQsus-unsplash.jpg);
+    }
+
+    .footer > .row {
+        width: 90%;
     }
 }
 
@@ -41,6 +72,10 @@ body {
         background-image: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
             url(img/mohammad-rahmani-N5bT5RctFZ8-unsplash.jpg);
     }
+
+    .footer > .row {
+        width: 90%;
+    }
 }
 
 /* X-Small devices (portrait phones, less than 576px) */
@@ -49,9 +84,43 @@ body {
         background-image: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
             url(img/mohammad-rahmani-N5bT5RctFZ8-unsplash.jpg);
     }
+
+    .footer > .row {
+        width: 90%;
+    }
 }
 
-.content {
-    position: relative;
-    z-index: 20;
+#offcanvasStart {
+    background-color: rgba(1, 1, 1, 0.7);
 }
+
+.button-porphyrius {
+    color: aliceblue;
+    text-shadow: 0 0 7px rgb(255, 255, 255), 0 0 10px rgb(255, 255, 255), 0 0 21px rgb(255, 255, 255),
+        0 0 42px rgb(82, 0, 82), 0 0 82px rgb(82, 0, 82), 0 0 92px rgb(82, 0, 82), 0 0 102px rgb(82, 0, 82),
+        0 0 151px rgb(82, 0, 82);
+
+    box-shadow: 0 0 7px rgb(255, 255, 255), 0 0 10px rgb(255, 255, 255), 0 0 21px rgb(255, 255, 255),
+        0 0 42px rgb(82, 0, 82), 0 0 82px rgb(82, 0, 82), 0 0 92px rgb(82, 0, 82), 0 0 102px rgb(82, 0, 82),
+        0 0 151px rgb(82, 0, 82) !important;
+}
+
+.button-porphyrius:hover {
+    box-shadow: 0 0 7px rgb(255, 255, 255), 0 0 10px rgb(255, 255, 255), 0 0 42px rgb(82, 0, 82);
+}
+
+
+ul.nav li a, ul.nav li a:visited {
+    color: aliceblue !important;
+}
+
+ul.nav li a:hover, ul.nav li a:active {
+    color: rgb(196, 125, 243) !important;
+    text-shadow:0 0 7px rgb(255, 255, 255), 0 0 10px rgb(255, 255, 255), 0 0 42px rgb(82, 0, 82);
+}
+
+ul.nav li.active a {
+    color: rgb(77, 9, 104) !important;
+}
+
+

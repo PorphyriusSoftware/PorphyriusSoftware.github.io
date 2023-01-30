@@ -21,15 +21,89 @@
   </head>
   <body>
     <div class="container-fluid bg-image" id="container">
+      <div
+        class="offcanvas offcanvas-start"
+        tabindex="-1"
+        id="offcanvasStart"
+        aria-labelledby="offcanvasStartLabel"
+      >
+        <div class="offcanvas-header">
+          <h5 id="offcanvasTopLabel">Menu</h5>
+          <button
+            type="button"
+            class="btn-close text-reset"
+            data-bs-dismiss="offcanvas"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="offcanvas-body">
+          <ul
+            class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-start"
+            id="menu"
+          >
+            <li class="nav-item">
+              <a href="#" class="nav-link text-truncate">
+                <span class="ms-1 d-none d-sm-inline">Project</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                data-bs-toggle="collapse"
+                class="nav-link text-truncate"
+              >
+                <span class="ms-1 d-none d-sm-inline">Project</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-link text-truncate">
+                <span class="ms-1 d-none d-sm-inline">Project</span></a
+              >
+            </li>
+            <li>
+              <a href="#" class="nav-link text-truncate">
+                <span class="ms-1 d-none d-sm-inline">Project</span></a
+              >
+            </li>
+            <li>
+              <a href="#" class="nav-link text-truncate">
+                <span class="ms-1 d-none d-sm-inline">Project</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
       <div class="row content">
         <div class="col"></div>
         <div class="col-8 text-center">
-          <h1>Hello World!</h1>
+          <hr />
           <p></p>
-          <p>I'm hosted with GitHub Pages.</p>
-          <p>Porphyrius Software</p>
+          <h1>Hello World!</h1>
+          <p style="height: 50px"></p>
+          <p>
+            <button
+              class="btn button-porphyrius border border-dark border-3 rounded-3"
+              type="button"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#offcanvasStart"
+              aria-controls="offcanvasStart"
+            >
+              Menu
+            </button>
+          </p>
         </div>
         <div class="col"></div>
+      </div>
+      <div class="footer">
+        <div class="row">
+          <!-- <div class="col"></div> -->
+          <div class="col text-center">
+            <p>I'm hosted with GitHub Pages.</p>
+            <p>Porphyrius Software</p>
+          </div>
+          <!-- <div class="col"></div> -->
+        </div>
       </div>
     </div>
     <script
