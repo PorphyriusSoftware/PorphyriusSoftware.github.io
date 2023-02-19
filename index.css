@@ -1,34 +1,57 @@
 body {
     color: aliceblue;
-    text-shadow: 0 0 7px rgb(255, 255, 255), 0 0 10px rgb(255, 255, 255), 0 0 21px rgb(255, 255, 255),
+    text-shadow: 0 0 7px rgb(255, 255, 255), 0 0 10px rgb(255, 255, 255), 0 0 16px rgb(255, 255, 255),
         0 0 42px rgb(82, 0, 82), 0 0 82px rgb(82, 0, 82), 0 0 92px rgb(82, 0, 82), 0 0 102px rgb(82, 0, 82),
         0 0 151px rgb(82, 0, 82);
+
+    overflow-y: hidden; /* Hide vertical scrollbar */
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+    cursor: none;
+    font-family: 'Reggae One', cursive;
 }
 
 #container {
+    /* Reset container */
+    position: absolute;
     height: 100vh;
+    width: 100vw;
+    top: 0;
+    left: 0;
+    padding: 0;
 
     background-image: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
         url(img/fotis-fotopoulos-SyvsTmuuZyM-unsplash.jpg);
 
     background-repeat: no-repeat;
     background-size: cover;
+    /* padding: 0; */
 }
 
 .content {
     position: relative;
     z-index: 20;
-    /* coordinate with footer */
-    margin-bottom: 120px;
 }
 
 .footer {
     position: absolute;
     width: 97%;
-    /* coordinate with content */
-    min-height: 120px;
     bottom: 0;
     margin: auto;
+}
+#navigation {
+    /* just to be above canvas and register the click */
+    z-index: 2;
+}
+#backgroundCanvas {
+    /* Have the canvas cover the whole page */
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    /* have the canvas above container elements */
+    z-index: 1;
+    background-color: rgba(0, 0, 0, 0.0);
 }
 
 /* X-Large devices (large desktops, less than 1400px) */
@@ -90,9 +113,6 @@ body {
     }
 }
 
-#offcanvasStart {
-    background-color: rgba(1, 1, 1, 0.7);
-}
 
 .button-porphyrius {
     color: aliceblue;
@@ -109,18 +129,24 @@ body {
     box-shadow: 0 0 7px rgb(255, 255, 255), 0 0 10px rgb(255, 255, 255), 0 0 42px rgb(82, 0, 82);
 }
 
-
-ul.nav li a, ul.nav li a:visited {
+ul.nav-bar li a,
+ul.navbar-nav li a:visited {
     color: aliceblue !important;
 }
 
-ul.nav li a:hover, ul.nav li a:active {
+ul.navbar-nav li a:hover,
+ul.navbar-nav li a:active {
     color: rgb(196, 125, 243) !important;
-    text-shadow:0 0 7px rgb(255, 255, 255), 0 0 10px rgb(255, 255, 255), 0 0 42px rgb(82, 0, 82);
+    text-shadow: 0 0 7px rgb(255, 255, 255), 0 0 10px rgb(255, 255, 255), 0 0 42px rgb(82, 0, 82) !important;
 }
 
-ul.nav li.active a {
+
+
+ul.navbar-nav li.active a {
     color: rgb(77, 9, 104) !important;
 }
 
-
+svg {
+    /* shadow for svg icons in the nav*/
+    filter: url(#shadow);
+}
