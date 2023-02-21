@@ -16,23 +16,20 @@ const start = () => {
         spaceship;
 
         /**
-         * Player, playerLeft, playerRight are images declared in the html.
+         * Player, playerLeft, playerRight, laserGreen, laserGreenShot are images declared in the html.
          */
         player = player;
         playerLeft = playerLeft
         playerRight = playerRight;
+        laserGreen = laserGreen;
+        laserGreenShot = laserGreenShot;
+
+        
 
         /**
-         * particleBoop is a wav audio file declared in the html.
+         * speedLine, starBackground, starBig, starSmall, meteorBig, meteorSmall are images declared in the html.
          */
-        particleBoop = particleBoop;
-
-        /**
-         * nebula, speedLine, starBackground, starBig, starSmall, meteorBig, meteorSmall are images declared in the html.
-         */
-        nebula = nebula;
         speedLine = speedLine;
-        // starBackground = starBackground;
         starBig = starBig;
         starSmall = starSmall;
         meteorBig = meteorBig;
@@ -42,18 +39,27 @@ const start = () => {
         star3 = star3;
         star4 = star4;
 
+        /**
+         * enemy, enemyShip, enemyUFO are images declared in the html.
+         */
+        enemy = enemy;
+        enemyShip = enemyShip;
+        enemyUFO = enemyUFO;
 
         spaceshipParticles = [];
         backGroundElements = [];
+        spaceshipLaser = [];
+        enemies = [];
         amountOfBackgroundElements = 20;
         lastTime = 0;
+        amountOfEnemys = 50;
         constructor(ctx) {
             /**
              * Properties
              */
             this.ctx = ctx;
             this.mouse = { x: 0, y: 0 };
-            this.spaceship = new Spaceship(this, this.mouse, this.player, this.playerLeft, this.playerRight, this.particleBoop);
+            this.spaceship = new Spaceship(this, this.mouse, this.player, this.playerLeft, this.playerRight, this.laserGreen, this.laserGreenShot);
 
             /**
              * Event listeners
@@ -77,10 +83,20 @@ const start = () => {
             this.lastTime = timeStamp;
             this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
+            /**
+             * Randomly add background elements
+             */
             if (this.getRandomInt(500) > 450 && this.backGroundElements.length < this.amountOfBackgroundElements) {
                 this.backGroundElements.push(new BackgroundElement(this, this.speedLine, this.starBig, this.starSmall, this.meteorBig, this.meteorSmall, this.star1, this.star2, this.star3, this.star4)
                 );
 
+            }
+
+            /**
+             * Randomly add enemies
+             */
+            if (this.getRandomInt(500) > 490 && this.enemies.length < this.amountOfEnemys) {
+                this.enemies.push(new Enemy(this, this.enemy, this.enemyShip, this.enemyUFO));
             }
 
             this.backGroundElements = this.filterByActive(this.backGroundElements);
@@ -88,22 +104,49 @@ const start = () => {
              * Sort them by speed, that way faster objects are drawn in front od slower objects. 
              * This creates depth
              */
-            this.backGroundElements.sort((a,b)=> a.speedFactor-b.speedFactor);
+            this.backGroundElements.sort((a, b) => a.speedFactor - b.speedFactor);
             this.drawArray(this.backGroundElements, timeDifference);
 
             this.spaceshipParticles = this.filterByActive(this.spaceshipParticles);
 
             this.drawArray(this.spaceshipParticles, timeDifference);
 
+            this.spaceshipLaser = this.filterByActive(this.spaceshipLaser);
+            this.drawArray(this.spaceshipLaser, timeDifference);
+
+            this.enemies = this.filterByActive(this.enemies);
+            this.drawArray(this.enemies, timeDifference);
+
 
             this.spaceship.update(timeDifference);
             this.spaceship.draw(this.ctx);
 
 
-
-
-
             requestAnimationFrame(this.animate);
+        }
+
+        detectCollision(owner, arr) {
+            let i = 0;
+            let collision = false;
+            while (i < arr.length && !collision) {
+
+                if (!arr[i].collided) {
+                    if (owner.x > (arr[i].drawingX + arr[i].image.naturalWidth) ||
+                        (owner.x + owner.width) < arr[i].drawingX ||
+                        owner.y > (arr[i].drawingY + arr[i].image.naturalHeight) ||
+                        (owner.y + owner.height) < arr[i].drawingY
+                    ) {
+                        //no colission
+                    } else {
+                        collision = true;
+                        arr[i].collide();
+
+                    }
+                }
+                i++;
+
+            }
+            return collision;
         }
 
 
@@ -236,13 +279,13 @@ const start = () => {
                  */
                 ctx.translate(this.x, this.y);
                 ctx.rotate(Math.PI / 180 * (this.angle += this.angleIncrement));
-                if(this.shouldBlink){
+                if (this.shouldBlink) {
                     /**
                      * if we need to blink, we reduce the opacity until it reaches below 0.1 and then we bump it up.
                      */
-                    ctx.globalAlpha = this.opacityBlink-=0.03;
-                    if(this.opacityBlink<0.1){
-                        this.opacityBlink=1;
+                    ctx.globalAlpha = this.opacityBlink -= 0.03;
+                    if (this.opacityBlink < 0.1) {
+                        this.opacityBlink = 1;
                     }
                 }
                 ctx.drawImage(this.image, -this.image.naturalWidth * .5, -this.image.naturalHeight * .5, this.image.naturalWidth, this.image.naturalHeight);
@@ -272,20 +315,26 @@ const start = () => {
         player;
         playerLeft;
         playerRight;
+        laserGreen;
+        laserGreenShot;
+        laserTimer = 0;
+        laserFrequencyFactor = .5;
         x;
         y;
         image;
         timer = 0;
         timerUpperLimit = 150;
         particleBoop;
-        constructor(game, mouse, player, playerLeft, playerRight, particleBoop) {
+        constructor(game, mouse, player, playerLeft, playerRight,  laserGreen, laserGreenShot) {
             this.game = game;
             this.mouse = mouse;
             this.player = player;
             this.playerLeft = playerLeft;
             this.playerRight = playerRight
             this.image = player;//initial state;
-            this.particleBoop = particleBoop
+            this.laserGreen = laserGreen;
+            this.laserGreenShot = laserGreenShot
+
         }
 
 
@@ -307,9 +356,10 @@ const start = () => {
             }
 
 
-            let x = this.mouse.x;
-            let y = this.mouse.y + this.image.naturalHeight;
-            this.game.spaceshipParticles.push(new Particle(x, y, state, this.particleBoop));
+            this.x = this.mouse.x;
+            this.y = this.mouse.y + this.image.naturalHeight;
+
+            this.game.spaceshipParticles.push(new Particle(this.x, this.y, state));
 
 
         }
@@ -331,8 +381,19 @@ const start = () => {
                 const state = this.getMovingState();
                 this.handleState(state);
                 this.timer = 0;
+
             } else {
                 this.timer += timeDifference;
+            }
+
+            if (this.laserTimer > this.timerUpperLimit) {
+                /**
+                 * Shooting laser
+                 */
+                this.game.spaceshipLaser.push(new Laser(this.game, this.laserGreen, this.mouse.x, this.mouse.y, false, this.laserGreenShot));
+                this.laserTimer = 0;
+            } else {
+                this.laserTimer += timeDifference * this.laserFrequencyFactor;
             }
 
         }
@@ -351,6 +412,82 @@ const start = () => {
         }
     }
 
+    class Laser {
+        game;
+        image;
+        x;
+        y;
+        timer = 0;
+        timerUpperLimit = 50;
+        active = true;
+        isEnemy;
+        drawingX;
+        drawingY;
+        collided = false;
+        collisionCounter = 0;
+        collisionCounterLimit = 5;
+        collidedImage;
+        width = 10;
+        height = 100;
+        constructor(game, image, x, y, isEnemy, collidedImage) {
+
+            this.game = game;
+            this.image = image;
+            this.width = image.naturalWidth;
+            this.height = image.naturalHeight;
+            this.x = x;
+            this.y = y;
+            this.isEnemy = isEnemy;
+            this.collidedImage = collidedImage;
+        }
+
+        update = (timeDifference) => {
+
+            if (this.collided) {
+                this.collisionCounter++
+                if (this.collisionCounter > this.collisionCounterLimit) {
+                    this.active = false;
+                }
+            }
+
+            if (this.timer > this.timerUpperLimit) {
+                if (this.isEnemy) {
+
+                    //Enemy laser
+                    this.y = this.y + 3;
+                    if (this.y > this.game.ctx.canvas.height + this.image.naturalHeight) {
+                        this.active = false;
+                    }
+                } else {
+
+                    //Player laser
+                    this.y = this.y - 5;
+                    if (this.y < 0 - this.image.naturalHeight) {
+                        this.active = false;
+                    }
+                }
+
+
+
+            } else {
+                this.timer += timeDifference;
+            }
+        }
+
+        draw = (ctx) => {
+            ctx.save();
+            this.drawingX = this.x - (this.image.naturalWidth * .5);
+            this.drawingY = this.y;
+            ctx.drawImage(this.image, this.drawingX, this.drawingY, this.image.naturalWidth, this.image.naturalHeight);
+            ctx.restore();
+        }
+
+        collide = () => {
+            this.collided = true;
+            this.image = this.collidedImage;
+        }
+    }
+
     class Particle {
         x;
         y;
@@ -361,22 +498,17 @@ const start = () => {
         timerUpperLimit = 50;
         color = 'white';
 
-        constructor(x, y, state, particleBoop) {
+        constructor(x, y, state) {
             this.x = x;
             this.y = y;
             this.state = state;
             try {
                 const shouldPlay = document.querySelector('#soundOn').checked;
                 if (shouldPlay) {
+                    let particleBoop=new Audio('./sound/se_shot1.mp3');
                     particleBoop.volume = 0.01;
                     particleBoop.play();
-                    /**
-                     * Stop the sound after this timout, and restart the position of the audio
-                     */
-                    setTimeout(() => {
-                        particleBoop.pause();
-                        particleBoop.load();
-                    }, 700);
+                    
                 }
 
             } catch (e) {
@@ -395,7 +527,7 @@ const start = () => {
                 this.y = this.y + 5;
                 this.size--;
 
-                if (this.size < 1) {
+                if (this.size < 2) {
                     this.active = false;
                 }
             } else {
@@ -425,6 +557,151 @@ const start = () => {
             ctx.stroke();
             ctx.restore();
         }
+    }
+
+    class Enemy {
+        game;
+        x;
+        y;
+        timer = 0;
+        timerUpperLimit = 50;
+        width = 200;
+        height = 100;
+        active = true;
+        angle = 0;
+        images = [];
+        image;
+        index;
+        speedFactorY;
+        isSpiral = false;
+        isExp = false;
+        death;
+        constructor(game, enemy, enemyShip, enemyUFO) {
+            this.game = game;
+            this.images.push(enemy);
+            this.images.push(enemyShip);
+            this.images.push(enemyUFO);
+            this.index = this.game.getRandomInt(this.images.length);
+            this.image = this.images[this.index];
+            this.image = this.images[this.index];
+            this.x = this.game.getRandomInt(this.game.ctx.canvas.width);
+            this.y = 0 - this.image.naturalHeight;
+            this.death = new Audio('./sound/se_dead4.mp3');
+            switch (this.index) {
+                case 0:
+                    this.speedFactorY = 1;
+                    this.isSpiral = true;
+                    break;
+                case 1:
+                    this.speedFactorY = 5;
+                    break;
+                case 2:
+                    this.speedFactorY = 1;
+                    this.isExp = true;
+                    break;
+            }
+
+        }
+
+        update = (timeDifference) => {
+            if (this.timer > this.timerUpperLimit) {
+                this.y += 1 * this.speedFactorY;
+                /**
+                 * Override Y value to make them spiral 'enemy'
+                 */
+                if (this.isSpiral) {
+                    this.y += 30 * Math.sin(this.angle);
+                }
+                /**
+                 * X goes wobly to the sides
+                 */
+                this.x += 50 * Math.cos(this.angle += .5);
+
+                /**
+                 * If experimental is on
+                 */
+                if (this.isExp) {
+                    /**
+                     * X can go left right
+                     */
+                    this.x += (Math.random() * this.game.getRandomInt(this.game.ctx.canvas.width) * .01) - this.game.getRandomInt(this.game.ctx.canvas.width) * .01;
+
+                    /**
+                     * If the object went too far up reset it
+                     */
+                    if (this.y < 0 - this.image.naturalHeight) {
+                        this.y = 0;
+                    }
+                    /**
+                     * set the way random up and down
+                     */
+                    this.y += Math.random() * 20 - 10;
+                }
+                /**
+                 * Detect collision with lasers
+                 */
+                let collision = this.game.detectCollision(this, this.game.spaceshipLaser);
+                if (collision) {
+                    try {
+                        const shouldPlay = document.querySelector('#soundOn').checked;
+                        if (shouldPlay) {
+                             this.death.volume = 0.1;
+                            this.death.play();
+                            
+                        }
+
+                    } catch (e) {
+                        /**
+                        * should never get here
+                        */
+                        console.log(e);
+
+                    }
+
+                }
+                if (this.y > this.game.ctx.canvas.height || collision) {
+                    this.active = false;
+                }
+                this.timer = 0;
+            } else {
+                this.timer += timeDifference;
+            }
+
+        }
+
+        // detectCollision() {
+        //     let i = 0;
+        //     let arr = this.game.spaceshipLaser;
+        //     let collision = false
+        //     // console.log(arr);
+        //     while (i < arr.length && !collision) {
+
+        //         if (!arr[i].collided) {
+        //             if (this.x > (arr[i].drawingX + arr[i].image.naturalWidth) ||
+        //                 (this.x + this.width) < arr[i].drawingX ||
+        //                 this.y > (arr[i].drawingY + arr[i].image.naturalHeight) ||
+        //                 (this.y + this.height) < arr[i].drawingY
+        //             ) {
+        //                 //no colission
+        //             } else {
+        //                 collision = true;
+        //                 arr[i].collide();
+
+        //             }
+        //         }
+        //         i++;
+
+        //     }
+        //     return collision;
+        // }
+
+        draw = (ctx) => {
+            ctx.save();
+            ctx.drawImage(this.image, this.x, this.y, this.image.naturalWidth, this.image.naturalHeight);
+            ctx.restore();
+        }
+
+
     }
 
     const game = new Game(context);
