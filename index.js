@@ -24,7 +24,7 @@ const start = () => {
         laserGreen = laserGreen;
         laserGreenShot = laserGreenShot;
 
-        
+
 
         /**
          * speedLine, starBackground, starBig, starSmall, meteorBig, meteorSmall are images declared in the html.
@@ -45,21 +45,36 @@ const start = () => {
         enemy = enemy;
         enemyShip = enemyShip;
         enemyUFO = enemyUFO;
+        laserRed = laserRed;
+        laserRedShot = laserRedShot;
+
+
 
         spaceshipParticles = [];
         backGroundElements = [];
         spaceshipLaser = [];
+        enemiesLaser = [];
         enemies = [];
         amountOfBackgroundElements = 20;
         lastTime = 0;
-        amountOfEnemys = 50;
+        amountOfEnemies = 1;
+
+        score = 0;
+        maxScore = 0;
+        gameOver = false;
+        gameStarted = false;
+        display;
+        finished;
         constructor(ctx) {
             /**
              * Properties
              */
             this.ctx = ctx;
             this.mouse = { x: 0, y: 0 };
+            this.finished = new Audio('./sound/se_bomb3.mp3');
             this.spaceship = new Spaceship(this, this.mouse, this.player, this.playerLeft, this.playerRight, this.laserGreen, this.laserGreenShot);
+
+            this.display = new Display(this);
 
             /**
              * Event listeners
@@ -73,56 +88,101 @@ const start = () => {
                 context.canvas.height = window.innerHeight;
             })
 
+            window.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    if (!this.gameOver) {
+                        this.gameStarted = !this.gameStarted;
+                    } else {
+                        this.resetGame();
+                        this.gameStarted = true;
+                        this.gameOver = false;
+
+                    }
+                }
+
+            });
+
         }
 
+        resetGame = () => {
+            this.amountOfEnemies = 1;
+            this.score = 0;
+            this.enemies = [];
+            this.spaceshipParticles = [];
+            this.spaceshipLaser = [];
+            this.enemies = [];
+            this.enemiesLaser = [];
+        }
 
         animate = (timeStamp) => {
-
-
             let timeDifference = timeStamp - this.lastTime;
             this.lastTime = timeStamp;
-            this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
-            /**
-             * Randomly add background elements
-             */
-            if (this.getRandomInt(500) > 450 && this.backGroundElements.length < this.amountOfBackgroundElements) {
-                this.backGroundElements.push(new BackgroundElement(this, this.speedLine, this.starBig, this.starSmall, this.meteorBig, this.meteorSmall, this.star1, this.star2, this.star3, this.star4)
-                );
+            if (!this.gameOver && this.gameStarted) {
+
+
+
+                this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+
+                /**
+                 * Randomly add background elements
+                 */
+                if (this.getRandomInt(500) > 450 && this.backGroundElements.length < this.amountOfBackgroundElements) {
+                    this.backGroundElements.push(new BackgroundElement(this, this.speedLine, this.starBig, this.starSmall, this.meteorBig, this.meteorSmall, this.star1, this.star2, this.star3, this.star4)
+                    );
+
+                }
+
+                /**
+                 * Randomly add enemies
+                 */
+
+                this.amountOfEnemies = this.calculateAmountOfEnemies();
+                console.log(this.amountOfEnemies);
+                if (this.getRandomInt(500) > 480 && this.enemies.length < this.amountOfEnemies) {
+                    this.enemies.push(new Enemy(this, this.enemy, this.enemyShip, this.enemyUFO, this.laserRed, this.laserRedShot));
+                    console.log(this.enemies.length);
+                }
+
+                this.backGroundElements = this.filterByActive(this.backGroundElements);
+                /**
+                 * Sort them by speed, that way faster objects are drawn in front od slower objects. 
+                 * This creates depth
+                 */
+                this.backGroundElements.sort((a, b) => a.speedFactor - b.speedFactor);
+                this.drawArray(this.backGroundElements, timeDifference);
+
+                this.spaceshipParticles = this.filterByActive(this.spaceshipParticles);
+
+                this.drawArray(this.spaceshipParticles, timeDifference);
+
+                this.spaceshipLaser = this.filterByActive(this.spaceshipLaser);
+                this.drawArray(this.spaceshipLaser, timeDifference);
+
+                this.enemies = this.filterByActive(this.enemies);
+                this.drawArray(this.enemies, timeDifference);
+
+                this.enemiesLaser = this.filterByActive(this.enemiesLaser);
+                this.drawArray(this.enemiesLaser, timeDifference);
+
+                this.spaceship.update(timeDifference);
+                this.spaceship.draw(this.ctx);
+
 
             }
-
             /**
-             * Randomly add enemies
+             * Display always updates and draws
              */
-            if (this.getRandomInt(500) > 490 && this.enemies.length < this.amountOfEnemys) {
-                this.enemies.push(new Enemy(this, this.enemy, this.enemyShip, this.enemyUFO));
-            }
-
-            this.backGroundElements = this.filterByActive(this.backGroundElements);
-            /**
-             * Sort them by speed, that way faster objects are drawn in front od slower objects. 
-             * This creates depth
-             */
-            this.backGroundElements.sort((a, b) => a.speedFactor - b.speedFactor);
-            this.drawArray(this.backGroundElements, timeDifference);
-
-            this.spaceshipParticles = this.filterByActive(this.spaceshipParticles);
-
-            this.drawArray(this.spaceshipParticles, timeDifference);
-
-            this.spaceshipLaser = this.filterByActive(this.spaceshipLaser);
-            this.drawArray(this.spaceshipLaser, timeDifference);
-
-            this.enemies = this.filterByActive(this.enemies);
-            this.drawArray(this.enemies, timeDifference);
-
-
-            this.spaceship.update(timeDifference);
-            this.spaceship.draw(this.ctx);
-
-
+            this.display.update(timeDifference);
+            this.display.draw(this.ctx);
             requestAnimationFrame(this.animate);
+        }
+
+        /**
+         * Amount of enemies allowed depends on the score. 
+         */
+        calculateAmountOfEnemies = () => {
+            return (Math.floor(this.score * .025)) + 1;
         }
 
         detectCollision(owner, arr) {
@@ -166,6 +226,25 @@ const start = () => {
                     p.update(timeDifference);
                     p.draw(this.ctx);
                 });
+        }
+
+        increaseScore = (points) => {            // console.log('increasing: '+points);
+            this.score += points;
+            this.maxScore = Math.max(this.maxScore, this.score);
+        }
+
+        decreaseScore = (points) => {
+            this.score -= points;
+            if (this.score < 0) {
+                setTimeout(() => {
+                    this.gameOver = true;
+
+                    finished.volume = .3;
+                    finished.play();
+                    this.display.draw(this.ctx);
+                }, 300);
+
+            }
         }
 
 
@@ -324,8 +403,12 @@ const start = () => {
         image;
         timer = 0;
         timerUpperLimit = 150;
-        particleBoop;
-        constructor(game, mouse, player, playerLeft, playerRight,  laserGreen, laserGreenShot) {
+        hit;
+        previousX = 0;
+        previousY = 0;
+        width;
+        height;
+        constructor(game, mouse, player, playerLeft, playerRight, laserGreen, laserGreenShot) {
             this.game = game;
             this.mouse = mouse;
             this.player = player;
@@ -334,6 +417,7 @@ const start = () => {
             this.image = player;//initial state;
             this.laserGreen = laserGreen;
             this.laserGreenShot = laserGreenShot
+            this.hit = new Audio('./sound/se_taanbobobo.mp3');
 
         }
 
@@ -356,20 +440,22 @@ const start = () => {
             }
 
 
-            this.x = this.mouse.x;
-            this.y = this.mouse.y + this.image.naturalHeight;
+            this.x = this.getRealX();
+            this.y = this.getRealY();
+            this.width = this.image.naturalWidth;
+            this.height = this.image.naturalHeight;
 
-            this.game.spaceshipParticles.push(new Particle(this.x, this.y, state));
+            this.game.spaceshipParticles.push(new Particle(this.mouse.x, this.mouse.y + this.image.naturalHeight, state));
 
 
         }
 
         getMovingState() {
-            if (this.mouse.x > this.x) {
+            if (this.mouse.x > this.previousX) {
                 return 'right';
             }
 
-            if (this.mouse.x < this.x) {
+            if (this.mouse.x < this.previousX) {
                 return 'left';
             }
 
@@ -390,25 +476,58 @@ const start = () => {
                 /**
                  * Shooting laser
                  */
-                this.game.spaceshipLaser.push(new Laser(this.game, this.laserGreen, this.mouse.x, this.mouse.y, false, this.laserGreenShot));
+                this.game.spaceshipLaser.push(new Laser(this.game, this.laserGreen, this.mouse.x, this.mouse.y, false, this.laserGreenShot, false));
                 this.laserTimer = 0;
             } else {
                 this.laserTimer += timeDifference * this.laserFrequencyFactor;
             }
 
+            /**
+                 * Detect collision with lasers
+                 */
+            let collision = this.game.detectCollision(this, this.game.enemiesLaser);
+            if (collision) {
+                this.game.decreaseScore(20);
+                try {
+                    const shouldPlay = document.querySelector('#soundOn').checked;
+                    if (shouldPlay) {
+                        this.hit.volume = 0.3;
+                        this.hit.play();
+                    }
+
+                } catch (e) {
+                    /**
+                    * should never get here
+                    */
+                    console.log(e);
+
+                }
+
+            }
+
         }
 
+        getRealX = () => {
+            return this.mouse.x - (this.image.naturalWidth * .5);
+        }
+
+        getRealY = () => {
+            return this.mouse.y;
+        }
 
 
         draw = (ctx) => {
             ctx.save();
-            ctx.drawImage(this.image, this.mouse.x - (this.image.naturalWidth * .5), this.mouse.y, this.image.naturalWidth, this.image.naturalHeight);
+            this.x = this.getRealX();
+            this.y = this.getRealY();
+            // console.log(this.image);
+            ctx.drawImage(this.image, this.x, this.y, this.image.naturalWidth, this.image.naturalHeight);
             ctx.restore();
             /**
              * capture the last X,Y position
              */
-            this.x = this.mouse.x;
-            this.y = this.mouse.x;
+            this.previousX = this.mouse.x;
+            this.previousY = this.mouse.y;
         }
     }
 
@@ -429,7 +548,9 @@ const start = () => {
         collidedImage;
         width = 10;
         height = 100;
-        constructor(game, image, x, y, isEnemy, collidedImage) {
+        randomShooting = false;
+        shootingAngle = 0;
+        constructor(game, image, x, y, isEnemy, collidedImage, randomShooting) {
 
             this.game = game;
             this.image = image;
@@ -439,6 +560,13 @@ const start = () => {
             this.y = y;
             this.isEnemy = isEnemy;
             this.collidedImage = collidedImage;
+            this.randomShooting = randomShooting;
+
+            if (randomShooting) {
+                this.shootingAngle = this.game.getRandomInt(360);
+            }
+
+
         }
 
         update = (timeDifference) => {
@@ -458,6 +586,24 @@ const start = () => {
                     if (this.y > this.game.ctx.canvas.height + this.image.naturalHeight) {
                         this.active = false;
                     }
+
+                    /**
+                     * for random lasers shoot up
+                     */
+                    if (this.y < 0 - this.image.naturalHeight) {
+                        this.active = false;
+                    }
+
+                    if (this.x > 10000 || this.x < -10000) {
+                        this.active = false;
+                    }
+
+                    if (this.randomShooting) {
+                        this.x += Math.cos(this.shootingAngle * (Math.PI / 180)) * 3;
+                        this.y += Math.sin(this.shootingAngle * (Math.PI / 180)) * 3;
+                    }
+
+
                 } else {
 
                     //Player laser
@@ -505,10 +651,10 @@ const start = () => {
             try {
                 const shouldPlay = document.querySelector('#soundOn').checked;
                 if (shouldPlay) {
-                    let particleBoop=new Audio('./sound/se_shot1.mp3');
+                    let particleBoop = new Audio('./sound/se_shot1.mp3');
                     particleBoop.volume = 0.01;
                     particleBoop.play();
-                    
+
                 }
 
             } catch (e) {
@@ -576,7 +722,14 @@ const start = () => {
         isSpiral = false;
         isExp = false;
         death;
-        constructor(game, enemy, enemyShip, enemyUFO) {
+        laserTimer = 0;
+        laserFrequencyFactor = .05;
+        laserRed;
+        laserRedShot;
+        shouldShoot = false;
+        randomShooting = false;
+        scorePoints = 0;
+        constructor(game, enemy, enemyShip, enemyUFO, laserRed, laserRedShot) {
             this.game = game;
             this.images.push(enemy);
             this.images.push(enemyShip);
@@ -587,23 +740,48 @@ const start = () => {
             this.x = this.game.getRandomInt(this.game.ctx.canvas.width);
             this.y = 0 - this.image.naturalHeight;
             this.death = new Audio('./sound/se_dead4.mp3');
+            this.laserRed = laserRed;
+            this.laserRedShot = laserRedShot;
             switch (this.index) {
                 case 0:
                     this.speedFactorY = 1;
                     this.isSpiral = true;
+                    this.scorePoints = 10;
                     break;
                 case 1:
                     this.speedFactorY = 5;
+                    this.shouldShoot = true;
+                    this.scorePoints = 5;
                     break;
                 case 2:
                     this.speedFactorY = 1;
                     this.isExp = true;
+                    this.shouldShoot = true;
+                    this.randomShooting = true;
+                    this.scorePoints = 5;
                     break;
             }
 
         }
 
         update = (timeDifference) => {
+
+
+            if (this.shouldShoot) {
+                if (this.laserTimer > this.timerUpperLimit) {
+                    /**
+                     * Shooting laser
+                     */
+                    this.game.enemiesLaser.push(new Laser(this.game, this.laserRed, this.x, this.y, true, this.laserRedShot, this.randomShooting));
+                    this.laserTimer = 0;
+                } else {
+                    this.laserTimer += timeDifference * this.laserFrequencyFactor;
+                }
+            }
+
+
+
+
             if (this.timer > this.timerUpperLimit) {
                 this.y += 1 * this.speedFactorY;
                 /**
@@ -642,12 +820,13 @@ const start = () => {
                  */
                 let collision = this.game.detectCollision(this, this.game.spaceshipLaser);
                 if (collision) {
+                    this.game.increaseScore(this.scorePoints);
                     try {
                         const shouldPlay = document.querySelector('#soundOn').checked;
                         if (shouldPlay) {
-                             this.death.volume = 0.1;
+                            this.death.volume = 0.1;
                             this.death.play();
-                            
+
                         }
 
                     } catch (e) {
@@ -659,7 +838,14 @@ const start = () => {
                     }
 
                 }
-                if (this.y > this.game.ctx.canvas.height || collision) {
+
+                /**
+                 * Mark as inactive on collision or out of canvas
+                 */
+                if (this.y > this.game.ctx.canvas.height ||
+                    this.x < -100 ||
+                    this.x > this.game.ctx.canvas.width + 100 ||
+                    collision) {
                     this.active = false;
                 }
                 this.timer = 0;
@@ -700,6 +886,88 @@ const start = () => {
             ctx.drawImage(this.image, this.x, this.y, this.image.naturalWidth, this.image.naturalHeight);
             ctx.restore();
         }
+
+
+    }
+
+    class Display {
+        game;
+        opacityBlink;
+        timer = 0;
+        timerUpperLimit = 200;
+        constructor(game) {
+            this.game = game;
+            this.opacityBlink = 1;
+        }
+
+
+        update = (timeDifference) => {
+            if (this.timer > this.timerUpperLimit) {
+                this.opacityBlink -= 0.05
+                if (this.opacityBlink < 0.001) {
+                    this.opacityBlink = 1;
+                }
+                this.timer = 0;
+            } else {
+                this.timer += timeDifference;
+            }
+
+        }
+
+        draw = (ctx) => {
+            ctx.save();
+
+
+
+            if (!this.game.gameStarted) {
+                ctx.beginPath();
+                ctx.globalAlpha = this.opacityBlink;
+                /**
+                 * Looks like global alpha does not work with fill text in this case. is it the font size? the font? who knows...
+                 */
+                ctx.fillStyle = `rgba(${255 * this.opacityBlink},${255 * this.opacityBlink},${255 * this.opacityBlink},${this.opacityBlink})`;
+                // console.log(this.opacityBlink);
+                ctx.font = '100px Reggae One';
+
+                const maxText = ctx.measureText('Press Enter...');
+                ctx.fillText('Press Enter...', (ctx.canvas.width * .5) - maxText.width * .5, (ctx.canvas.height * .5));
+
+
+                ctx.beginPath();
+                ctx.font = '50px Reggae One';
+                const minText = ctx.measureText('IF YOU DARE');
+
+                ctx.fillText('IF YOU DARE', (ctx.canvas.width * .5) - minText.width * .5, (ctx.canvas.height * .5) + 70);
+            }
+
+            if (this.game.gameOver) {
+                ctx.beginPath();
+                ctx.font = '100px Reggae One';
+                ctx.fillStyle = 'white'
+
+                const maxText = ctx.measureText('Game Over');
+                ctx.fillText('Game Over', (ctx.canvas.width * .5) - maxText.width * .5, (ctx.canvas.height * .5));
+
+            } else if (this.game.gameStarted) {
+                ctx.beginPath();
+                ctx.font = '50px Reggae One';
+                ctx.fillStyle = 'white'
+                const maxText = ctx.measureText(`Max Score: ${this.game.maxScore}`);
+                ctx.fillText(`Max Score: ${this.game.maxScore}`, ctx.canvas.width - maxText.width - 250, 100);
+
+
+
+                const text = ctx.measureText(`Score: ${this.game.score}`);
+                ctx.fillText(`Score: ${this.game.score}`, ctx.canvas.width - maxText.width - 250, 150);
+            }
+
+
+
+            ctx.restore();
+
+
+        }
+
 
 
     }
