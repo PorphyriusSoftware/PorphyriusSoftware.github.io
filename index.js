@@ -65,6 +65,11 @@ const start = () => {
         gameStarted = false;
         display;
         finished;
+        touchStartX;
+        touchStartY;
+        touchEndX;
+        touchEndY;
+        touchUpThreshold = 1;
         constructor(ctx) {
             /**
              * Properties
@@ -90,18 +95,60 @@ const start = () => {
 
             window.addEventListener('keyup', (e) => {
                 if (e.key === 'Enter') {
-                    if (!this.gameOver) {
-                        this.gameStarted = !this.gameStarted;
-                    } else {
-                        this.resetGame();
-                        this.gameStarted = true;
-                        this.gameOver = false;
-
-                    }
+                    this.handleInput();
                 }
 
             });
 
+            window.addEventListener('touchstart', (e) => {
+                this.touchStartX = e.changedTouches[0].pageX;
+                this.touchStartY = e.changedTouches[0].pageY;
+            })
+
+            window.addEventListener('touchmove', (e) => {
+                this.mouse.x = e.changedTouches[0].pageX;
+                this.mouse.y = e.changedTouches[0].pageY;
+            });
+
+            window.addEventListener('touchend', (e) => {
+                this.touchEndX = e.changedTouches[0].pageX;
+                this.touchEndY = e.changedTouches[0].pageY;
+                const diff = this.touchEndX - this.touchStartX;
+
+                this.handleInput();
+
+            });
+
+
+
+        }
+
+        launchFullScreen(element) {
+            if (element.requestFullScreen) {
+                element.requestFullScreen();
+            } else if (element.mozRequestFullScreen) {
+                element.mozRequestFullScreen();
+            } else if (element.webkitRequestFullScreen) {
+                element.webkitRequestFullScreen();
+            }
+        }
+
+        handleInput() {
+            if (!this.gameOver) {
+                this.gameStarted = !this.gameStarted;
+                if (this.gameStarted) {
+                    document.body.style.cursor = 'none';
+                    this.launchFullScreen(document.documentElement);
+                } else {
+                    document.body.style.cursor = 'auto';
+                }
+            } else {
+                this.resetGame();
+                this.gameStarted = true;
+                this.gameOver = false;
+                this.launchFullScreen(document.documentElement);
+                document.body.style.cursor = 'none';
+            }
         }
 
         resetGame = () => {
@@ -138,10 +185,8 @@ const start = () => {
                  */
 
                 this.amountOfEnemies = this.calculateAmountOfEnemies();
-                console.log(this.amountOfEnemies);
                 if (this.getRandomInt(500) > 480 && this.enemies.length < this.amountOfEnemies) {
                     this.enemies.push(new Enemy(this, this.enemy, this.enemyShip, this.enemyUFO, this.laserRed, this.laserRedShot));
-                    console.log(this.enemies.length);
                 }
 
                 this.backGroundElements = this.filterByActive(this.backGroundElements);
@@ -228,7 +273,7 @@ const start = () => {
                 });
         }
 
-        increaseScore = (points) => {            // console.log('increasing: '+points);
+        increaseScore = (points) => {
             this.score += points;
             this.maxScore = Math.max(this.maxScore, this.score);
         }
@@ -520,7 +565,6 @@ const start = () => {
             ctx.save();
             this.x = this.getRealX();
             this.y = this.getRealY();
-            // console.log(this.image);
             ctx.drawImage(this.image, this.x, this.y, this.image.naturalWidth, this.image.naturalHeight);
             ctx.restore();
             /**
@@ -855,32 +899,6 @@ const start = () => {
 
         }
 
-        // detectCollision() {
-        //     let i = 0;
-        //     let arr = this.game.spaceshipLaser;
-        //     let collision = false
-        //     // console.log(arr);
-        //     while (i < arr.length && !collision) {
-
-        //         if (!arr[i].collided) {
-        //             if (this.x > (arr[i].drawingX + arr[i].image.naturalWidth) ||
-        //                 (this.x + this.width) < arr[i].drawingX ||
-        //                 this.y > (arr[i].drawingY + arr[i].image.naturalHeight) ||
-        //                 (this.y + this.height) < arr[i].drawingY
-        //             ) {
-        //                 //no colission
-        //             } else {
-        //                 collision = true;
-        //                 arr[i].collide();
-
-        //             }
-        //         }
-        //         i++;
-
-        //     }
-        //     return collision;
-        // }
-
         draw = (ctx) => {
             ctx.save();
             ctx.drawImage(this.image, this.x, this.y, this.image.naturalWidth, this.image.naturalHeight);
@@ -895,6 +913,8 @@ const start = () => {
         opacityBlink;
         timer = 0;
         timerUpperLimit = 200;
+        fontSize = 100;
+        topMargin = 100;
         constructor(game) {
             this.game = game;
             this.opacityBlink = 1;
@@ -914,10 +934,38 @@ const start = () => {
 
         }
 
+        setFontProperties(canvasWidth) {
+            if (canvasWidth > 200 && canvasWidth < 300) {
+                this.fontSize = 15;
+                this.topMargin = 145;
+            }
+            if (canvasWidth > 300 && canvasWidth < 450) {
+                this.fontSize = 20;
+                this.topMargin = 145;
+            }
+            if (canvasWidth > 450 && canvasWidth < 650) {
+                this.fontSize = 20;
+                this.topMargin = 145;
+            }
+            if (canvasWidth > 650 && canvasWidth < 850) {
+                this.fontSize = 40;
+                this.topMargin = 145;
+            }
+            if (canvasWidth > 850 && canvasWidth < 1300) {
+                this.fontSize = 40;
+                this.topMargin = 145;
+            }
+
+
+        }
+
         draw = (ctx) => {
             ctx.save();
 
+            const canvasWidth = ctx.canvas.width;
+            const canvasHeight = ctx.canvas.height;
 
+            this.setFontProperties(canvasWidth);
 
             if (!this.game.gameStarted) {
                 ctx.beginPath();
@@ -926,39 +974,45 @@ const start = () => {
                  * Looks like global alpha does not work with fill text in this case. is it the font size? the font? who knows...
                  */
                 ctx.fillStyle = `rgba(${255 * this.opacityBlink},${255 * this.opacityBlink},${255 * this.opacityBlink},${this.opacityBlink})`;
-                // console.log(this.opacityBlink);
-                ctx.font = '100px Reggae One';
 
-                const maxText = ctx.measureText('Press Enter...');
-                ctx.fillText('Press Enter...', (ctx.canvas.width * .5) - maxText.width * .5, (ctx.canvas.height * .5));
+                ctx.font = `${this.fontSize}px Reggae One`;
+
+                const maxText = ctx.measureText('Press Enter or Touch Here...');
+                ctx.fillText('Press Enter or Touch Here...', (canvasWidth * .5) - maxText.width * .5, (canvasHeight * .5));
 
 
                 ctx.beginPath();
-                ctx.font = '50px Reggae One';
+                ctx.font = `${this.fontSize * .5}px Reggae One`;
                 const minText = ctx.measureText('IF YOU DARE');
 
-                ctx.fillText('IF YOU DARE', (ctx.canvas.width * .5) - minText.width * .5, (ctx.canvas.height * .5) + 70);
+                ctx.fillText('IF YOU DARE', (canvasWidth * .5) - minText.width * .5, (canvasHeight * .5) + canvasHeight * .12 * (this.fontSize * .01));
             }
 
             if (this.game.gameOver) {
                 ctx.beginPath();
-                ctx.font = '100px Reggae One';
+                ctx.font = `${this.fontSize}px Reggae One`;
                 ctx.fillStyle = 'white'
 
                 const maxText = ctx.measureText('Game Over');
-                ctx.fillText('Game Over', (ctx.canvas.width * .5) - maxText.width * .5, (ctx.canvas.height * .5));
+                ctx.fillText('Game Over', (canvasWidth * .5) - maxText.width * .5, (canvasHeight * .5));
 
             } else if (this.game.gameStarted) {
+
                 ctx.beginPath();
-                ctx.font = '50px Reggae One';
+
+                ctx.font = `${this.fontSize * .5}px Reggae One`;
                 ctx.fillStyle = 'white'
                 const maxText = ctx.measureText(`Max Score: ${this.game.maxScore}`);
-                ctx.fillText(`Max Score: ${this.game.maxScore}`, ctx.canvas.width - maxText.width - 250, 100);
+
+
+
+                ctx.fillText(`Max Score: ${this.game.maxScore}`, canvasWidth - maxText.width - (250 * (this.fontSize * .01)), this.topMargin);
 
 
 
                 const text = ctx.measureText(`Score: ${this.game.score}`);
-                ctx.fillText(`Score: ${this.game.score}`, ctx.canvas.width - maxText.width - 250, 150);
+
+                ctx.fillText(`Score: ${this.game.score}`, canvasWidth - maxText.width - (250 * (this.fontSize * .01)), this.topMargin + this.fontSize);
             }
 
 
